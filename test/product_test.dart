@@ -1,28 +1,29 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:labprm393/lab1/controller/product_controller.dart';
 import 'package:labprm393/lab1/entity/product.dart';
 
 void main() {
   setUp(() {
-    Product.resetProducts();
+    ProductController.resetProducts();
   });
 
   test('addProduct adds a new product', () {
-    Product.addProduct(
+    ProductController.addProduct(
       const Product(
-        id: 'P05',
-        name: 'Le Han Quoc',
-        image: 'le_han_quoc.png',
+        id: 'P11',
+        name: 'Mit Thai',
+        image: 'mit_thai.png',
         price: 90000,
       ),
     );
 
-    final products = Product.displayProducts();
-    expect(products.length, 5);
-    expect(products.any((item) => item.id == 'P05'), isTrue);
+    final products = ProductController.getProducts();
+    expect(products.length, 11);
+    expect(products.any((item) => item.id == 'P11'), isTrue);
   });
 
   test('updateProduct updates existing product', () {
-    final updated = Product.updateProduct(
+    final updated = ProductController.updateProduct(
       'P01',
       const Product(
         id: 'P01',
@@ -32,7 +33,7 @@ void main() {
       ),
     );
 
-    final products = Product.displayProducts();
+    final products = ProductController.getProducts();
     final product = products.firstWhere((item) => item.id == 'P01');
 
     expect(updated, isTrue);
@@ -41,25 +42,28 @@ void main() {
   });
 
   test('deleteProduct removes existing product', () {
-    final deleted = Product.deleteProduct('P04');
+    final deleted = ProductController.deleteProduct('P04');
 
     expect(deleted, isTrue);
-    expect(Product.displayProducts().length, 3);
-    expect(Product.displayProducts().any((item) => item.id == 'P04'), isFalse);
+    expect(ProductController.getProducts().length, 9);
+    expect(
+      ProductController.getProducts().any((item) => item.id == 'P04'),
+      isFalse,
+    );
   });
 
   test('searchProducts finds products by keyword', () {
-    final results = Product.searchProducts('xoai');
+    final results = ProductController.searchProducts('xoai');
 
     expect(results.length, 1);
     expect(results.first.name, 'Xoai Cat');
   });
 
   test('sortByPrice sorts ascending', () {
-    Product.sortByPrice();
+    ProductController.sortByPrice();
 
-    final products = Product.displayProducts();
-    expect(products.first.name, 'Cam Sanh');
+    final products = ProductController.getProducts();
+    expect(products.first.name, 'Dua Hau');
     expect(products.last.name, 'Nho My');
   });
 }
