@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../entity/product.dart';
-import '../utils/validator.dart';
+import '../ult/validator.dart';
 
 class ProductDialog extends StatefulWidget {
   const ProductDialog({super.key});
