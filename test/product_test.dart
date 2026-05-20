@@ -9,7 +9,7 @@ void main() {
 
   test('addProduct adds a new product', () {
     ProductController.addProduct(
-      const Product(
+      const Product.constData(
         id: 'P11',
         name: 'Mit Thai',
         image: 'mit_thai.png',
@@ -25,7 +25,7 @@ void main() {
   test('updateProduct updates existing product', () {
     final updated = ProductController.updateProduct(
       'P01',
-      const Product(
+      const Product.constData(
         id: 'P01',
         name: 'Tao Envy',
         image: 'tao_envy.png',
@@ -57,6 +57,20 @@ void main() {
 
     expect(results.length, 1);
     expect(results.first.name, 'Xoai Cat');
+  });
+
+  test('fromJson maps json to product', () {
+    final product = Product.fromJson({
+      'id': 'P11',
+      'name': 'Mit Thai',
+      'image': 'mit_thai.png',
+      'price': 90000,
+    });
+
+    expect(product.id, 'P11');
+    expect(product.name, 'Mit Thai');
+    expect(product.image, 'mit_thai.png');
+    expect(product.price, 90000);
   });
 
   test('sortByPrice sorts ascending', () {
