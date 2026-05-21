@@ -3,95 +3,135 @@
 import '../entity/product.dart';
 
 class ProductDAO {
-  ProductDAO._();
+  ProductDAO(this.l);
 
-  static List<Product> getAll() {
-    return Product.products;
+  List<Product> l;
+
+  List<Product> getAllProduct() {
+    l = Product.products;
+    return l;
   }
 
-  static void add(Product product) {
-    Product.products.add(product);
+  void addProduct(Product p) {
+    var index = l.indexWhere((element) => element.id == p.id);
+    if (index < 0) {
+      l.add(p);
+    }
   }
 
-  static bool edit(Product product) {
-    final index = Product.products.indexWhere(
-      (item) => item.id.toLowerCase() == product.id.toLowerCase(),
-    );
+  void deleteProduct(String id) {
+    l.removeWhere((element) => element.id == id);
+  }
 
-    if (index == -1) {
+  bool updateProduct(Product pNew) {
+    var index = l.indexWhere((element) => element.id == pNew.id);
+    if (index < 0) {
       return false;
     }
 
-    Product.products[index] = product;
+    l[index] = pNew;
     return true;
   }
 
-  static bool delete(String id) {
-    final product = find(id);
-    if (product == null) {
-      return false;
-    }
-
-    Product.products.remove(product);
-    return true;
-  }
-
-  static Product? find(String id) {
-    final index = Product.products.indexWhere(
-      (item) => item.id.toLowerCase() == id.toLowerCase(),
-    );
-
-    if (index == -1) {
+  Product? findProduct(String id) {
+    var index = l.indexWhere((element) => element.id == id);
+    if (index < 0) {
       return null;
     }
 
-    return Product.products[index];
+    return l[index];
   }
 
-  static List<Product> search(String keyword) {
-    final key = keyword.trim().toLowerCase();
+  List<Product> searchProduct(String keyword) {
+    var key = keyword.trim().toLowerCase();
 
-    return Product.products
+    return l
         .where(
-          (item) =>
-              item.id.toLowerCase().contains(key) ||
-              item.name.toLowerCase().contains(key) ||
-              item.image.toLowerCase().contains(key),
+          (element) =>
+              element.id.toLowerCase().contains(key) ||
+              element.name.toLowerCase().contains(key) ||
+              element.image.toLowerCase().contains(key),
         )
         .toList();
   }
 
-  static List<Product> searchByName(String name) {
-    final key = name.trim().toLowerCase();
+  List<Product> searchByName(String name) {
+    var key = name.trim().toLowerCase();
 
-    return Product.products
-        .where((item) => item.name.toLowerCase().contains(key))
+    return l
+        .where((element) => element.name.toLowerCase().contains(key))
         .toList();
   }
 
-  static List<Product> searchByPrice(double minPrice, double maxPrice) {
-    return Product.products
-        .where((item) => item.price >= minPrice && item.price <= maxPrice)
+  List<Product> searchByPrice(double minPrice, double maxPrice) {
+    return l
+        .where(
+          (element) => element.price >= minPrice && element.price <= maxPrice,
+        )
         .toList();
   }
 
-  static void increasePrice() {
-    Product.products = Product.products
-        .map((item) => item.copyWith(price: item.price * 1.1))
-        .toList();
+  void increasePrice() {
+    l = l.map((element) {
+      return element.copyWith(price: element.price * 1.1);
+    }).toList();
+
+    Product.products = l;
   }
 
-  static void sortByName() {
-    Product.products.sort((a, b) => a.name.compareTo(b.name));
+  void sortByName() {
+    l.sort((a, b) => a.name.compareTo(b.name));
   }
 
-  static void sortByPrice() {
-    Product.products.sort((a, b) => a.price.compareTo(b.price));
+  void sortByPrice() {
+    l.sort((a, b) => a.price.compareTo(b.price));
   }
 
-  static void reset() {
-    Product.products = List<Product>.from(Product.defaultProducts);
+  void reset() {
+    l = List<Product>.from(Product.defaultProducts);
+    Product.products = l;
   }
+
+  static ProductDAO get _dao => ProductDAO(Product.products);
+
+  static List<Product> getAll() => _dao.getAllProduct();
+
+  static void add(Product product) => _dao.addProduct(product);
+
+  static bool edit(Product product) => _dao.updateProduct(product);
+
+  static bool delete(String id) {
+    var dao = _dao;
+    var product = dao.findProduct(id);
+    if (product == null) {
+      return false;
+    }
+
+    dao.deleteProduct(id);
+    return true;
+  }
+
+  static Product? find(String id) => _dao.findProduct(id);
+
+  static List<Product> search(String keyword) => _dao.searchProduct(keyword);
+
+  static List<Product> searchName(String name) => _dao.searchByName(name);
+
+  static List<Product> searchPrice(double minPrice, double maxPrice) {
+    return _dao.searchByPrice(minPrice, maxPrice);
+  }
+
+  static void increaseAllPrice() => _dao.increasePrice();
+
+  static void sortName() => _dao.sortByName();
+
+  static void sortPrice() => _dao.sortByPrice();
+
+  static void resetData() => _dao.reset();
+}
+
+class Productdao extends ProductDAO {
+  Productdao(super.l);
 }
 
 class DAOProduct {
@@ -109,18 +149,17 @@ class DAOProduct {
 
   static List<Product> search(String keyword) => ProductDAO.search(keyword);
 
-  static List<Product> searchByName(String name) =>
-      ProductDAO.searchByName(name);
+  static List<Product> searchByName(String name) => ProductDAO.searchName(name);
 
   static List<Product> searchByPrice(double minPrice, double maxPrice) {
-    return ProductDAO.searchByPrice(minPrice, maxPrice);
+    return ProductDAO.searchPrice(minPrice, maxPrice);
   }
 
-  static void increasePrice() => ProductDAO.increasePrice();
+  static void increasePrice() => ProductDAO.increaseAllPrice();
 
-  static void sortByName() => ProductDAO.sortByName();
+  static void sortByName() => ProductDAO.sortName();
 
-  static void sortByPrice() => ProductDAO.sortByPrice();
+  static void sortByPrice() => ProductDAO.sortPrice();
 
-  static void reset() => ProductDAO.reset();
+  static void reset() => ProductDAO.resetData();
 }
