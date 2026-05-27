@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:labprm393/Widgets/Product_Widget.dart';
 
 class Homepage extends StatelessWidget {
   const Homepage({super.key});
@@ -11,8 +12,9 @@ class Homepage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Homepage', style: TextStyle(color: Colors.white)),
+        title: const Text('Store Explorer', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.blue,
+        elevation: 0,
         actions: [
           IconButton(
             onPressed: onPress,
@@ -24,29 +26,36 @@ class Homepage extends StatelessWidget {
           ),
         ],
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.network('https://picsum.photos/200'),
-            Image.asset('assets/cr7.jpg', width: 200),
-            const SizedBox(height: 20),
-            RichText(
-              text: const TextSpan(
-                text: 'Hello ',
-                style: TextStyle(color: Colors.black, fontSize: 19),
-                children: [
-                  TextSpan(
-                    text: 'Flutter ',
-                    style: TextStyle(color: Colors.blue, fontSize: 19),
-                  ),
-                  TextSpan(
-                    text: ' World',
-                    style: TextStyle(color: Colors.amber, fontSize: 19),
-                  ),
-                ],
+            const ProductWidget(),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: const TextSpan(
+                  text: 'Welcome to ',
+                  style: TextStyle(color: Colors.black, fontSize: 18),
+                  children: [
+                    TextSpan(
+                      text: 'Flutter ',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(
+                      text: 'Marketplace',
+                      style: TextStyle(color: Colors.amber, fontSize: 18),
+                    ),
+                  ],
+                ),
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
