@@ -11,61 +11,59 @@ class Homepage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Store Explorer', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.blue,
+        title: const Text(
+          'Premium Store',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.blue[800],
         elevation: 0,
+        centerTitle: true,
         actions: [
           IconButton(
             onPressed: onPress,
-            icon: const Icon(Icons.search, color: Colors.white),
-          ),
-          IconButton(
-            onPressed: onPress,
-            icon: const Icon(Icons.more_vert, color: Colors.white),
+            icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
           ),
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const ProductWidget(),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: const TextSpan(
-                  text: 'Welcome to ',
-                  style: TextStyle(color: Colors.black, fontSize: 18),
-                  children: [
-                    TextSpan(
-                      text: 'Flutter ',
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 20, 16, 10),
+              child: Row(
+                children: [
+                  Text(
+                    "Featured Products",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
-                    TextSpan(
-                      text: 'Marketplace',
-                      style: TextStyle(color: Colors.amber, fontSize: 18),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
+            ProductWidget(), // Back to no parameters
+            const SizedBox(height: 10),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Divider(),
+            ),
+            const SizedBox(height: 10),
+            ProductWidget(), // Using same static widget twice for demo
+            const SizedBox(height: 30),
           ],
         ),
       ),
       drawer: Drawer(
         child: Column(
           children: [
-            const UserAccountsDrawerHeader(
-              accountName: Text('User Name'),
-              accountEmail: Text('user@example.com'),
-              currentAccountPicture: CircleAvatar(
+            UserAccountsDrawerHeader(
+              decoration: BoxDecoration(color: Colors.blue[800]),
+              accountName: const Text('User Name'),
+              accountEmail: const Text('user@example.com'),
+              currentAccountPicture: const CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Icon(Icons.person),
               ),
@@ -73,31 +71,27 @@ class Homepage extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.home),
               title: const Text('Home'),
-              onTap: () {
-                Navigator.pop(context);
-              },
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.favorite),
+              title: const Text('Wishlist'),
+              onTap: () => Navigator.pop(context),
             ),
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-              },
+              onTap: () => Navigator.pop(context),
             ),
+            const Spacer(),
             ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () {
-                Navigator.pop(context);
-              },
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Logout', style: TextStyle(color: Colors.red)),
+              onTap: () => Navigator.pop(context),
             ),
+            const SizedBox(height: 20),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: onPress,
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
