@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'core_widgets_demo.dart';
-import 'debug_fixes_demo.dart';
-import 'input_controls_demo.dart';
-import 'layout_basics_demo.dart';
-import 'scaffold_theme_demo.dart';
+import 'ex1.dart';
+import 'ex2.dart';
+import 'ex3.dart';
+import 'ex4.dart';
+import 'ex5.dart';
 
 class Lab4App extends StatefulWidget {
   const Lab4App({super.key});
