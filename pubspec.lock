@@ -152,6 +152,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.10.2"
+  sql_conn:
+    dependency: "direct main"
+    description:
+      name: sql_conn
+      sha256: "7edbdf58b63eddcc69f63c19c32f68a30f0dabddd08842795ec74a6aba8e4439"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   stack_trace:
     dependency: transitive
     description:

@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 
-class ProductWidget extends StatelessWidget {
+class ProductWidget extends StatefulWidget {
   const ProductWidget({super.key});
+
+  @override
+  State<ProductWidget> createState() => _ProductWidgetState();
+}
+
+class _ProductWidgetState extends State<ProductWidget> {
+  int _count = 0;
+
   @override
   Widget build(BuildContext context) {
     // Reverted to static format as requested - variables defined inside the build method
@@ -16,8 +24,8 @@ class ProductWidget extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       elevation: 6,
-      shadowColor: Colors.black26,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shadowColor: Colors.black.withValues(alpha: 0.26),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -59,7 +67,7 @@ class ProductWidget extends StatelessWidget {
                 top: 8,
                 right: 8,
                 child: CircleAvatar(
-                  backgroundColor: Colors.white.withOpacity(0.9),
+                  backgroundColor: Colors.white.withValues(alpha: 0.9),
                   child: IconButton(
                     icon: const Icon(Icons.favorite_border, color: Colors.red),
                     onPressed: () {},
@@ -73,7 +81,7 @@ class ProductWidget extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
+                    color: Colors.black.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -99,7 +107,7 @@ class ProductWidget extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 // Name and Price
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -128,7 +136,28 @@ class ProductWidget extends StatelessWidget {
                 // Review count
                 Text(
                   "$reviews reviews",
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                  style: TextStyle(color: Colors.grey[600]?.withValues(alpha: 1.0), fontSize: 13),
+                ),
+                const SizedBox(height: 8),
+                // Quantity Selector
+                Row(
+                  children: [
+                    const Text("Quantity:", style: TextStyle(fontWeight: FontWeight.w500)),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          if (_count > 0) _count--;
+                        });
+                      },
+                      icon: Icon(Icons.remove_circle_outline, color: Colors.blue[800]),
+                    ),
+                    Text('$_count', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    IconButton(
+                      onPressed: () => setState(() => _count++),
+                      icon: Icon(Icons.add_circle_outline, color: Colors.blue[800]),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 // Description
@@ -138,8 +167,8 @@ class ProductWidget extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[800],
                     height: 1.4,
+                    color: Colors.grey[800]?.withValues(alpha: 1.0),
                   ),
                 ),
                 const SizedBox(height: 20),

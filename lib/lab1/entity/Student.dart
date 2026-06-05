@@ -1,3 +1,6 @@
+// ignore_for_file: non_constant_identifier_names, strict_top_level_inference
+// ignore_for_file: avoid_print, unused_local_variable
+
 class Person {
   final String id;
   final String name;
