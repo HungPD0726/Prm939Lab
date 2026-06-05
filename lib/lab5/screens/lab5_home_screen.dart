@@ -44,7 +44,6 @@ class _Lab5HomeScreenState extends State<Lab5HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final titles = ['Products', 'Favorites', 'Manage'];
     final pages = [
       _ProductsPage(
         repository: widget.repository,
@@ -63,17 +62,16 @@ class _Lab5HomeScreenState extends State<Lab5HomeScreen> {
         onAddPressed: () => _openProductForm(),
       ),
     ];
+    final titles = ['Products', 'Favorites', 'Manage'];
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Lab 5 - ${titles[_selectedIndex]}'),
         actions: [
-          Tooltip(
-            message: 'Add product',
-            child: IconButton(
-              onPressed: () => _openProductForm(),
-              icon: const Icon(Icons.add_box_outlined),
-            ),
+          IconButton(
+            tooltip: 'Add product',
+            onPressed: () => _openProductForm(),
+            icon: const Icon(Icons.add_box_outlined),
           ),
         ],
       ),
@@ -99,8 +97,8 @@ class _Lab5HomeScreenState extends State<Lab5HomeScreen> {
             label: 'Products',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border_rounded),
-            activeIcon: Icon(Icons.favorite_rounded),
+            icon: Icon(Icons.favorite_border),
+            activeIcon: Icon(Icons.favorite),
             label: 'Favorites',
           ),
           BottomNavigationBarItem(
@@ -137,7 +135,7 @@ class _ProductsPageState extends State<_ProductsPage> {
   @override
   void initState() {
     super.initState();
-    _categoriesFuture = _loadCategories();
+    _categoriesFuture = widget.repository.getCategories();
   }
 
   @override
@@ -145,18 +143,8 @@ class _ProductsPageState extends State<_ProductsPage> {
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.refreshToken != widget.refreshToken) {
-      _categoriesFuture = _loadCategories();
+      _categoriesFuture = widget.repository.getCategories();
     }
-  }
-
-  Future<List<String>> _loadCategories() async {
-    final categories = await widget.repository.getCategories();
-
-    if (categories.isEmpty) {
-      return Lab5Product.categories;
-    }
-
-    return categories;
   }
 
   @override
@@ -182,7 +170,7 @@ class _ProductsPageState extends State<_ProductsPage> {
             action: OutlinedButton.icon(
               onPressed: () {
                 setState(() {
-                  _categoriesFuture = _loadCategories();
+                  _categoriesFuture = widget.repository.getCategories();
                 });
               },
               icon: const Icon(Icons.refresh),
@@ -193,7 +181,9 @@ class _ProductsPageState extends State<_ProductsPage> {
 
         final tabs = [
           Lab5Product.allCategory,
-          ...(snapshot.data ?? Lab5Product.categories),
+          ...(snapshot.data?.isEmpty ?? true
+              ? Lab5Product.categories
+              : snapshot.data!),
         ];
 
         return DefaultTabController(
@@ -205,8 +195,8 @@ class _ProductsPageState extends State<_ProductsPage> {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
                 child: TextField(
                   controller: _searchController,
-                  textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
+                    labelText: 'Search products',
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _query.isEmpty
                         ? null
@@ -220,7 +210,6 @@ class _ProductsPageState extends State<_ProductsPage> {
                             },
                             icon: const Icon(Icons.close),
                           ),
-                    labelText: 'Search products',
                   ),
                   onChanged: (value) {
                     setState(() {
@@ -233,7 +222,6 @@ class _ProductsPageState extends State<_ProductsPage> {
                 color: Theme.of(context).colorScheme.surface,
                 child: TabBar(
                   isScrollable: true,
-                  tabAlignment: TabAlignment.start,
                   tabs: [for (final tab in tabs) Tab(text: tab)],
                 ),
               ),
@@ -274,30 +262,14 @@ class _FavoritesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
-          child: Text(
-            'Favorite products',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-          ),
-        ),
-        Expanded(
-          child: _ProductListSection(
-            repository: repository,
-            category: Lab5Product.allCategory,
-            query: '',
-            favoritesOnly: true,
-            refreshToken: refreshToken,
-            emptyTitle: 'No favorite products yet',
-            onChanged: onChanged,
-          ),
-        ),
-      ],
+    return _ProductListSection(
+      repository: repository,
+      category: Lab5Product.allCategory,
+      query: '',
+      favoritesOnly: true,
+      refreshToken: refreshToken,
+      emptyTitle: 'No favorite products yet',
+      onChanged: onChanged,
     );
   }
 }
@@ -360,11 +332,6 @@ class _ProductListSectionState extends State<_ProductListSection> {
     });
   }
 
-  Future<void> _refresh() async {
-    _reload();
-    await _future;
-  }
-
   Future<void> _toggleFavorite(Lab5Product product) async {
     final id = product.id;
     if (id == null) {
@@ -372,20 +339,12 @@ class _ProductListSectionState extends State<_ProductListSection> {
     }
 
     await widget.repository.toggleFavorite(id);
-
     if (!mounted) {
       return;
     }
 
     widget.onChanged();
     _reload();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          product.isFavorite ? 'Removed from favorites' : 'Added favorite',
-        ),
-      ),
-    );
   }
 
   Future<void> _openDetail(Lab5Product product) async {
@@ -429,24 +388,18 @@ class _ProductListSectionState extends State<_ProductListSection> {
 
         final products = snapshot.data ?? [];
         if (products.isEmpty) {
-          return RefreshIndicator(
-            onRefresh: _refresh,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                SizedBox(height: MediaQuery.sizeOf(context).height * 0.18),
-                _StateMessage(
-                  icon: Icons.inventory_2_outlined,
-                  title: widget.emptyTitle,
-                  message: 'Pull down to refresh the database list.',
-                ),
-              ],
-            ),
+          return _StateMessage(
+            icon: Icons.inventory_2_outlined,
+            title: widget.emptyTitle,
+            message: 'Add a product or change the current filter.',
           );
         }
 
         return RefreshIndicator(
-          onRefresh: _refresh,
+          onRefresh: () async {
+            _reload();
+            await _future;
+          },
           child: ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.only(top: 8, bottom: 96),
@@ -536,7 +489,7 @@ class _ManagePageState extends State<_ManagePage> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete product'),
-          content: Text('Delete "${product.name}" from the database?'),
+          content: Text('Delete "${product.name}"?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -556,16 +509,12 @@ class _ManagePageState extends State<_ManagePage> {
     }
 
     await widget.repository.delete(id);
-
     if (!mounted) {
       return;
     }
 
     widget.onChanged();
     _reload();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('${product.name} deleted')));
   }
 
   @override
@@ -577,181 +526,70 @@ class _ManagePageState extends State<_ManagePage> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (snapshot.hasError) {
-          return _StateMessage(
-            icon: Icons.error_outline,
-            title: 'Could not load inventory',
-            message: snapshot.error.toString(),
-            action: OutlinedButton.icon(
-              onPressed: _reload,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-            ),
-          );
-        }
-
         final products = snapshot.data ?? [];
         final totalStock = products.fold<int>(
           0,
           (sum, product) => sum + product.quantity,
         );
-        final totalValue = products.fold<double>(
-          0,
-          (sum, product) => sum + product.price * product.quantity,
-        );
 
-        return RefreshIndicator(
-          onRefresh: () async {
-            _reload();
-            await _future;
-          },
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-            children: [
-              _InventorySummary(
-                totalProducts: products.length,
-                totalStock: totalStock,
-                totalValue: totalValue,
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+          children: [
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: widget.onAddPressed,
-                icon: const Icon(Icons.add),
-                label: const Text('Add product'),
+              child: ListTile(
+                leading: const Icon(Icons.inventory_2_outlined),
+                title: Text('${products.length} products'),
+                subtitle: Text('$totalStock items in stock'),
               ),
-              const SizedBox(height: 12),
-              for (final product in products)
-                _ManageProductTile(
-                  product: product,
-                  onEdit: () => _editProduct(product),
-                  onDelete: () => _deleteProduct(product),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: widget.onAddPressed,
+              icon: const Icon(Icons.add),
+              label: const Text('Add product'),
+            ),
+            const SizedBox(height: 12),
+            for (final product in products)
+              Card(
+                clipBehavior: Clip.antiAlias,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-            ],
-          ),
+                child: ListTile(
+                  leading: Lab5ProductImage(
+                    imageAsset: product.imageAsset,
+                    width: 52,
+                    height: 52,
+                  ),
+                  title: Text(
+                    product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(formatLab5Currency(product.price)),
+                  trailing: Wrap(
+                    spacing: 2,
+                    children: [
+                      IconButton(
+                        tooltip: 'Edit',
+                        onPressed: () => _editProduct(product),
+                        icon: const Icon(Icons.edit_outlined),
+                      ),
+                      IconButton(
+                        tooltip: 'Delete',
+                        onPressed: () => _deleteProduct(product),
+                        icon: const Icon(Icons.delete_outline),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         );
       },
-    );
-  }
-}
-
-class _InventorySummary extends StatelessWidget {
-  const _InventorySummary({
-    required this.totalProducts,
-    required this.totalStock,
-    required this.totalValue,
-  });
-
-  final int totalProducts;
-  final int totalStock;
-  final double totalValue;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Wrap(
-          spacing: 18,
-          runSpacing: 14,
-          children: [
-            _SummaryValue(label: 'Products', value: '$totalProducts'),
-            _SummaryValue(label: 'Stock', value: '$totalStock'),
-            _SummaryValue(
-              label: 'Inventory value',
-              value: formatLab5Currency(totalValue),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SummaryValue extends StatelessWidget {
-  const _SummaryValue({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minWidth: 92),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ManageProductTile extends StatelessWidget {
-  const _ManageProductTile({
-    required this.product,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  final Lab5Product product;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: ListTile(
-        leading: Lab5ProductImage(
-          imageAsset: product.imageAsset,
-          width: 52,
-          height: 52,
-        ),
-        title: Text(product.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-        subtitle: Text(
-          '${product.category} - ${formatLab5Currency(product.price)}',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Wrap(
-          spacing: 2,
-          children: [
-            Tooltip(
-              message: 'Edit',
-              child: IconButton(
-                onPressed: onEdit,
-                icon: const Icon(Icons.edit_outlined),
-              ),
-            ),
-            Tooltip(
-              message: 'Delete',
-              child: IconButton(
-                onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -789,13 +627,7 @@ class _StateMessage extends StatelessWidget {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
+            Text(message, textAlign: TextAlign.center),
             if (action != null) ...[const SizedBox(height: 16), action!],
           ],
         ),

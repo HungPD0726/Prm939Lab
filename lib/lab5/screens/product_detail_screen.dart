@@ -39,12 +39,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return widget.repository.getById(id);
   }
 
-  void _reload() {
-    setState(() {
-      _future = _loadProduct();
-    });
-  }
-
   void _close() {
     Navigator.pop(context, _changed);
   }
@@ -56,7 +50,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     final updated = await widget.repository.toggleFavorite(id);
-
     if (!mounted || updated == null) {
       return;
     }
@@ -79,8 +72,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     if (changed == true) {
-      _changed = true;
-      _reload();
+      setState(() {
+        _changed = true;
+        _future = _loadProduct();
+      });
     }
   }
 
@@ -95,7 +90,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete product'),
-          content: Text('Delete "${product.name}" from the database?'),
+          content: Text('Delete "${product.name}"?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -115,12 +110,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     await widget.repository.delete(id);
-
-    if (!mounted) {
-      return;
+    if (mounted) {
+      Navigator.pop(context, true);
     }
-
-    Navigator.pop(context, true);
   }
 
   @override
@@ -136,32 +128,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             title: const Text('Product Detail'),
             actions: [
               if (product != null) ...[
-                Tooltip(
-                  message: product.isFavorite
+                IconButton(
+                  tooltip: product.isFavorite
                       ? 'Remove favorite'
                       : 'Add favorite',
-                  child: IconButton(
-                    onPressed: () => _toggleFavorite(product),
-                    icon: Icon(
-                      product.isFavorite
-                          ? Icons.favorite_rounded
-                          : Icons.favorite_border_rounded,
-                    ),
+                  onPressed: () => _toggleFavorite(product),
+                  icon: Icon(
+                    product.isFavorite ? Icons.favorite : Icons.favorite_border,
                   ),
                 ),
-                Tooltip(
-                  message: 'Edit',
-                  child: IconButton(
-                    onPressed: () => _editProduct(product),
-                    icon: const Icon(Icons.edit_outlined),
-                  ),
+                IconButton(
+                  tooltip: 'Edit',
+                  onPressed: () => _editProduct(product),
+                  icon: const Icon(Icons.edit_outlined),
                 ),
-                Tooltip(
-                  message: 'Delete',
-                  child: IconButton(
-                    onPressed: () => _deleteProduct(product),
-                    icon: const Icon(Icons.delete_outline),
-                  ),
+                IconButton(
+                  tooltip: 'Delete',
+                  onPressed: () => _deleteProduct(product),
+                  icon: const Icon(Icons.delete_outline),
                 ),
               ],
             ],
@@ -189,7 +173,59 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return ListView(
       padding: const EdgeInsets.only(bottom: 32),
       children: [
-        _DetailBanner(product: product),
+        SizedBox(
+          height: 260,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Lab5ProductImage(
+                imageAsset: product.imageAsset,
+                radius: 0,
+                fit: BoxFit.cover,
+              ),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.7),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 18,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      formatLab5Currency(product.price),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -228,191 +264,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ).textTheme.bodyLarge?.copyWith(height: 1.45),
               ),
               const SizedBox(height: 22),
-              _DetailActions(
-                product: product,
-                onFavorite: () => _toggleFavorite(product),
-                onEdit: () => _editProduct(product),
-                onDelete: () => _deleteProduct(product),
-              ),
-              const SizedBox(height: 22),
-              _DetailInfo(product: product),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _DetailBanner extends StatelessWidget {
-  const _DetailBanner({required this.product});
-
-  final Lab5Product product;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return SizedBox(
-      height: 270,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Lab5ProductImage(
-            imageAsset: product.imageAsset,
-            radius: 0,
-            fit: BoxFit.cover,
-          ),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.72),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  FilledButton.icon(
+                    onPressed: () => _toggleFavorite(product),
+                    icon: Icon(
+                      product.isFavorite
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                    ),
+                    label: Text(product.isFavorite ? 'Favorited' : 'Favorite'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => _editProduct(product),
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('Edit'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => _deleteProduct(product),
+                    icon: const Icon(Icons.delete_outline),
+                    label: const Text('Delete'),
+                  ),
                 ],
               ),
-            ),
-          ),
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 18,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  formatLab5Currency(product.price),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: colorScheme.primaryContainer,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DetailActions extends StatelessWidget {
-  const _DetailActions({
-    required this.product,
-    required this.onFavorite,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  final Lab5Product product;
-  final VoidCallback onFavorite;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: [
-        FilledButton.icon(
-          onPressed: onFavorite,
-          icon: Icon(
-            product.isFavorite
-                ? Icons.favorite_rounded
-                : Icons.favorite_border_rounded,
-          ),
-          label: Text(product.isFavorite ? 'Favorited' : 'Favorite'),
-        ),
-        OutlinedButton.icon(
-          onPressed: onEdit,
-          icon: const Icon(Icons.edit_outlined),
-          label: const Text('Edit'),
-        ),
-        OutlinedButton.icon(
-          onPressed: onDelete,
-          icon: const Icon(Icons.delete_outline),
-          label: const Text('Delete'),
-        ),
-      ],
-    );
-  }
-}
-
-class _DetailInfo extends StatelessWidget {
-  const _DetailInfo({required this.product});
-
-  final Lab5Product product;
-
-  @override
-  Widget build(BuildContext context) {
-    final rows = [
-      ('Database ID', product.id?.toString() ?? 'New'),
-      ('Category', product.category),
-      ('Price', formatLab5Currency(product.price)),
-      ('Quantity', product.quantity.toString()),
-      ('Rating', product.rating.toStringAsFixed(1)),
-      ('Created', product.createdAt.toIso8601String().split('T').first),
-    ];
-
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            for (var index = 0; index < rows.length; index++) ...[
-              _InfoRow(label: rows[index].$1, value: rows[index].$2),
-              if (index < rows.length - 1) const Divider(height: 20),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 112,
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            textAlign: TextAlign.end,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
         ),
       ],

@@ -22,23 +22,17 @@ class _Lab5AppState extends State<Lab5App> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.fromSeed(seedColor: Colors.teal);
+    final colorScheme = ColorScheme.fromSeed(seedColor: Colors.blue);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Lab 5 Product Database',
+      title: 'Lab 5 Product App',
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,
         appBarTheme: AppBarTheme(
-          centerTitle: false,
           backgroundColor: colorScheme.primaryContainer,
           foregroundColor: colorScheme.onPrimaryContainer,
-        ),
-        cardTheme: CardThemeData(
-          elevation: 1,
-          color: colorScheme.surface,
-          surfaceTintColor: colorScheme.surfaceTint,
         ),
         inputDecorationTheme: const InputDecorationTheme(
           border: OutlineInputBorder(),
@@ -57,7 +51,7 @@ class _Lab5AppState extends State<Lab5App> {
           case Lab5Routes.home:
             return Lab5HomeScreen(repository: _repository);
           case Lab5Routes.productDetail:
-            final product = _detailProductFrom(settings.arguments);
+            final product = _productFromDetailArguments(settings.arguments);
             if (product == null) {
               return const _RouteErrorScreen(message: 'Product not found.');
             }
@@ -69,7 +63,7 @@ class _Lab5AppState extends State<Lab5App> {
           case Lab5Routes.productForm:
             return ProductFormScreen(
               repository: _repository,
-              product: _formProductFrom(settings.arguments),
+              product: _productFromFormArguments(settings.arguments),
             );
           default:
             return const _RouteErrorScreen(message: 'Unknown route.');
@@ -78,7 +72,7 @@ class _Lab5AppState extends State<Lab5App> {
     );
   }
 
-  Lab5Product? _detailProductFrom(Object? arguments) {
+  Lab5Product? _productFromDetailArguments(Object? arguments) {
     if (arguments is ProductDetailArguments) {
       return arguments.product;
     }
@@ -90,7 +84,7 @@ class _Lab5AppState extends State<Lab5App> {
     return null;
   }
 
-  Lab5Product? _formProductFrom(Object? arguments) {
+  Lab5Product? _productFromFormArguments(Object? arguments) {
     if (arguments is ProductFormArguments) {
       return arguments.product;
     }

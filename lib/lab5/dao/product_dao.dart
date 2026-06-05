@@ -1,18 +1,11 @@
-import '../config/sql_server_config.dart';
 import '../model/lab5_product.dart';
-import 'sql_server_product_dao.dart';
+import 'sqflite_product_dao.dart';
 
 abstract class ProductDAO {
   const ProductDAO();
 
-  factory ProductDAO.sqlServer({SqlServerConfig? config}) {
-    return SqlServerProductDAO(
-      config: config ?? SqlServerConfig.fromEnvironment(),
-    );
-  }
-
   factory ProductDAO.defaultDao() {
-    return ProductDAO.sqlServer();
+    return SqfliteProductDAO();
   }
 
   Future<List<Lab5Product>> getAll({

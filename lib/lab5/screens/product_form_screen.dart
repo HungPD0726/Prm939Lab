@@ -35,7 +35,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     final product = widget.product;
     _category = product?.category ?? Lab5Product.categories.first;
     _rating = product?.rating ?? 4.5;
-    _categoriesFuture = _loadCategories();
+    _categoriesFuture = widget.repository.getCategories();
 
     if (product != null) {
       _nameController.text = product.name;
@@ -43,23 +43,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       _priceController.text = product.price.toStringAsFixed(0);
       _quantityController.text = product.quantity.toString();
       _imageController.text = product.imageAsset;
-    }
-  }
-
-  Future<List<String>> _loadCategories() async {
-    try {
-      final categories = await widget.repository.getCategories();
-      final merged = {
-        ...categories.where((category) => category.trim().isNotEmpty),
-        _category,
-      }.toList();
-
-      return merged.isEmpty ? Lab5Product.categories : merged;
-    } catch (_) {
-      return [
-        ...Lab5Product.categories,
-        if (!Lab5Product.categories.contains(_category)) _category,
-      ];
     }
   }
 
@@ -104,11 +87,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         await widget.repository.insert(product);
       }
 
-      if (!mounted) {
-        return;
+      if (mounted) {
+        Navigator.pop(context, true);
       }
-
-      Navigator.pop(context, true);
     } catch (error) {
       if (!mounted) {
         return;
@@ -116,7 +97,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Could not save product: $error')));
+      ).showSnackBar(SnackBar(content: Text('Could not save: $error')));
     } finally {
       if (mounted) {
         setState(() {
@@ -148,7 +129,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             FutureBuilder<List<String>>(
               future: _categoriesFuture,
               builder: (context, snapshot) {
-                final categories = snapshot.data ?? [_category];
+                final categories = {
+                  ...Lab5Product.categories,
+                  ...(snapshot.data ?? <String>[]),
+                  _category,
+                }.toList()..sort();
 
                 return DropdownButtonFormField<String>(
                   initialValue: categories.contains(_category)
@@ -179,8 +164,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               maxLines: 5,
               decoration: const InputDecoration(
                 labelText: 'Description',
-                alignLabelWithHint: true,
                 prefixIcon: Icon(Icons.notes_outlined),
+                alignLabelWithHint: true,
               ),
               validator: _requiredText,
             ),
@@ -190,7 +175,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              textInputAction: TextInputAction.next,
               decoration: const InputDecoration(
                 labelText: 'Price',
                 prefixIcon: Icon(Icons.payments_outlined),
@@ -202,7 +186,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             TextFormField(
               controller: _quantityController,
               keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.next,
               decoration: const InputDecoration(
                 labelText: 'Quantity',
                 prefixIcon: Icon(Icons.inventory_2_outlined),

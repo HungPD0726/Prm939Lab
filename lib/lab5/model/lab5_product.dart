@@ -13,8 +13,8 @@ class Lab5Product {
   });
 
   static const tableName = 'products';
-  static const categories = ['Jerseys', 'Shoes', 'Accessories'];
   static const allCategory = 'All';
+  static const categories = ['Jerseys', 'Shoes', 'Accessories'];
 
   final int? id;
   final String name;
@@ -26,41 +26,6 @@ class Lab5Product {
   final String imageAsset;
   final bool isFavorite;
   final DateTime createdAt;
-
-  factory Lab5Product.fromMap(Map<String, Object?> map) {
-    return Lab5Product(
-      id: _toNullableInt(map['id']),
-      name: map['name'].toString(),
-      category: map['category'].toString(),
-      description: map['description'].toString(),
-      price: _toDouble(map['price']),
-      quantity: _toInt(map['quantity']),
-      rating: _toDouble(map['rating']),
-      imageAsset: map['image_asset'].toString(),
-      isFavorite: _toInt(map['is_favorite']) == 1,
-      createdAt: DateTime.parse(map['created_at'].toString()),
-    );
-  }
-
-  Map<String, Object?> toMap({bool includeId = true}) {
-    final map = <String, Object?>{
-      'name': name,
-      'category': category,
-      'description': description,
-      'price': price,
-      'quantity': quantity,
-      'rating': rating,
-      'image_asset': imageAsset,
-      'is_favorite': isFavorite ? 1 : 0,
-      'created_at': createdAt.toIso8601String(),
-    };
-
-    if (includeId && id != null) {
-      map['id'] = id;
-    }
-
-    return map;
-  }
 
   Lab5Product copyWith({
     int? id,
@@ -85,6 +50,43 @@ class Lab5Product {
       imageAsset: imageAsset ?? this.imageAsset,
       isFavorite: isFavorite ?? this.isFavorite,
       createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  Map<String, Object?> toMap({bool includeId = true}) {
+    final map = <String, Object?>{
+      'name': name,
+      'category': category,
+      'description': description,
+      'price': price,
+      'quantity': quantity,
+      'rating': rating,
+      'image_asset': imageAsset,
+      'is_favorite': isFavorite ? 1 : 0,
+      'created_at': createdAt.toIso8601String(),
+    };
+
+    if (includeId && id != null) {
+      map['id'] = id;
+    }
+
+    return map;
+  }
+
+  factory Lab5Product.fromMap(Map<String, Object?> map) {
+    return Lab5Product(
+      id: _toNullableInt(map['id']),
+      name: map['name']?.toString() ?? '',
+      category: map['category']?.toString() ?? categories.first,
+      description: map['description']?.toString() ?? '',
+      price: _toDouble(map['price']),
+      quantity: _toInt(map['quantity']),
+      rating: _toDouble(map['rating']),
+      imageAsset: map['image_asset']?.toString() ?? 'assets/cr7.jpg',
+      isFavorite: _toInt(map['is_favorite']) == 1,
+      createdAt:
+          DateTime.tryParse(map['created_at']?.toString() ?? '') ??
+          DateTime.now(),
     );
   }
 
@@ -184,7 +186,7 @@ class Lab5Product {
       return value.toInt();
     }
 
-    return int.parse(value.toString());
+    return int.parse(value?.toString() ?? '0');
   }
 
   static double _toDouble(Object? value) {
@@ -196,6 +198,6 @@ class Lab5Product {
       return value.toDouble();
     }
 
-    return double.parse(value.toString());
+    return double.parse(value?.toString() ?? '0');
   }
 }
