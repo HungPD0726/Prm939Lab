@@ -1,112 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:labprm393/lab5/Pages/Aboutpage.dart';
+import 'package:labprm393/lab5/Pages/Homepage.dart';
+import 'package:labprm393/lab5/Pages/Productdetail.dart';
 
-import 'dao/product_dao.dart';
-import 'model/lab5_product.dart';
-import 'routes.dart';
-import 'screens/lab5_home_screen.dart';
-import 'screens/product_detail_screen.dart';
-import 'screens/product_form_screen.dart';
-
-class Lab5App extends StatefulWidget {
-  const Lab5App({super.key, this.repository});
-
-  final ProductDAO? repository;
-
-  @override
-  State<Lab5App> createState() => _Lab5AppState();
-}
-
-class _Lab5AppState extends State<Lab5App> {
-  late final ProductDAO _repository =
-      widget.repository ?? ProductDAO.defaultDao();
+// Day la root app cho Lab 5.
+// Nhiem vu chinh:
+// 1. Khoi tao MaterialApp.
+// 2. Dang ky named routes de Navigator.pushNamed co the dieu huong.
+// 3. Chon trang mac dinh la HomePage.
+class Lab5App extends StatelessWidget {
+  const Lab5App({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.fromSeed(seedColor: Colors.blue);
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Lab 5 Product App',
+      title: 'PRM392 Lab 5',
+      // Theme duoc dung chung cho toan bo app de giao dien dong nhat.
       theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
+        scaffoldBackgroundColor: const Color(0xFFFFFBF5),
         useMaterial3: true,
-        colorScheme: colorScheme,
-        appBarTheme: AppBarTheme(
-          backgroundColor: colorScheme.primaryContainer,
-          foregroundColor: colorScheme.onPrimaryContainer,
-        ),
-        inputDecorationTheme: const InputDecorationTheme(
-          border: OutlineInputBorder(),
-        ),
       ),
-      initialRoute: Lab5Routes.home,
-      onGenerateRoute: _onGenerateRoute,
-    );
-  }
-
-  Route<Object?> _onGenerateRoute(RouteSettings settings) {
-    return MaterialPageRoute<Object?>(
-      settings: settings,
-      builder: (context) {
-        switch (settings.name) {
-          case Lab5Routes.home:
-            return Lab5HomeScreen(repository: _repository);
-          case Lab5Routes.productDetail:
-            final product = _productFromDetailArguments(settings.arguments);
-            if (product == null) {
-              return const _RouteErrorScreen(message: 'Product not found.');
-            }
-
-            return ProductDetailScreen(
-              repository: _repository,
-              product: product,
-            );
-          case Lab5Routes.productForm:
-            return ProductFormScreen(
-              repository: _repository,
-              product: _productFromFormArguments(settings.arguments),
-            );
-          default:
-            return const _RouteErrorScreen(message: 'Unknown route.');
-        }
+      // Khi app mo len, route '/' se duoc goi truoc.
+      initialRoute: HomePage.routeName,
+      routes: {
+        // Bang route trung tam cho cac trang cua bai lab.
+        HomePage.routeName: (context) => const HomePage(),
+        AboutPage.routeName: (context) => const AboutPage(),
+        ProductDetailPage.routeName: (context) => const ProductDetailPage(),
       },
-    );
-  }
-
-  Lab5Product? _productFromDetailArguments(Object? arguments) {
-    if (arguments is ProductDetailArguments) {
-      return arguments.product;
-    }
-
-    if (arguments is Lab5Product) {
-      return arguments;
-    }
-
-    return null;
-  }
-
-  Lab5Product? _productFromFormArguments(Object? arguments) {
-    if (arguments is ProductFormArguments) {
-      return arguments.product;
-    }
-
-    if (arguments is Lab5Product) {
-      return arguments;
-    }
-
-    return null;
-  }
-}
-
-class _RouteErrorScreen extends StatelessWidget {
-  const _RouteErrorScreen({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Lab 5')),
-      body: Center(child: Text(message)),
     );
   }
 }
